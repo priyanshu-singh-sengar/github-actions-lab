@@ -13,3 +13,7 @@ Hands-on demonstration of GitHub Actions CI workflows.
 
 ## Workflow File
 The workflow is defined at [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
+
+## Verification Test
+
+Testing CI pull_request trigger, repository secrets, job variables, and artifact upload.
