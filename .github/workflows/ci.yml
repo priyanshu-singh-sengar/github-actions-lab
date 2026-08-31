@@ -1,0 +1,59 @@
+name: CI Pipeline
+
+on:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: Build & Test Job
+    runs-on: ubuntu-latest
+
+    # Job-level variables
+    env:
+      APP_ENV: "production-simulation"
+      BUILD_OUTPUT_DIR: "dist"
+      APP_VERSION: "1.0.0"
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verify Job-Level Environment Variables
+        run: |
+          echo "=== Job-Level Variables ==="
+          echo "Environment: $APP_ENV"
+          echo "Build Output Dir: $BUILD_OUTPUT_DIR"
+          echo "Version: $APP_VERSION"
+
+      - name: Use Repository Secret Safely
+        env:
+          SECRET_KEY: ${{ secrets.APP_API_KEY }}
+        run: |
+          echo "=== Repository Secret Verification ==="
+          if [ -n "$SECRET_KEY" ]; then
+            echo "SUCCESS: Secret is injected into environment."
+            echo "Secret length: ${#SECRET_KEY} characters (value is not printed for security)."
+          else
+            echo "ERROR: Secret is missing!"
+            exit 1
+          fi
+
+      - name: Simulate Application Build
+        run: |
+          mkdir -p "$BUILD_OUTPUT_DIR"
+          echo "Build Artifact" > "$BUILD_OUTPUT_DIR/build-info.txt"
+          echo "Environment: $APP_ENV" >> "$BUILD_OUTPUT_DIR/build-info.txt"
+          echo "Version: $APP_VERSION" >> "$BUILD_OUTPUT_DIR/build-info.txt"
+          echo "Timestamp: $(date -u)" >> "$BUILD_OUTPUT_DIR/build-info.txt"
+          echo '{"status": "success", "artifact": "build-output", "version": "'"$APP_VERSION"'"}' > "$BUILD_OUTPUT_DIR/metadata.json"
+
+      - name: Upload Build Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-artifact-package
+          path: ${{ env.BUILD_OUTPUT_DIR }}/
+          retention-days: 7
